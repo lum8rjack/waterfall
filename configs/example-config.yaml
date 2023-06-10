@@ -1,0 +1,42 @@
+---
+ project: "company"
+ directory: "results"
+ actions:
+   - name: "web-subfinder"
+     description: "Find additional subdomains"
+     command: "subfinder -dL domains.txt -silent -no-color -output {{ .directory }}/{{ .project }}-subfinder.log"
+     enabled: true
+     stdin: false
+     subactions:
+       - name: "web-naabu"
+         description: "Get common web ports"
+         command: "naabu -list hosts.txt -top-ports 100 -no-color -no-stdin -silent -output {{ .directory }}/{{ .project }}-naabu.log"
+         enabled: true
+         stdin: false
+         subactions:
+           - name: "web-wayback"
+             description: "Get wayback urls"
+             command: "waybackurls | tee {{ .directory }}/{{ .project }}-wayback.log"
+             enabled: false
+             stdin: true
+           - name: "web-httpx-details"
+             description: "Get http(s) hosts/ports with additional details"
+             command: "httpx -status-code -title -no-color -silent -output {{ .directory }}/{{ .project }}-httpx-details.log"
+             enabled: true
+             stdin: true
+           - name: "web-httpx"
+             description: "Get http(s) hosts/ports"
+             command: "httpx -no-color -silent -output {{ .directory }}/{{ .project }}-httpx.log"
+             enabled: true
+             stdin: true
+             subactions:
+               - name: "web-katana"
+                 description: "Spider website"
+                 command: "katana -no-color -silent -output {{ .directory }}/{{ .project }}-katana.log"
+                 enabled: true
+                 stdin: true
+               - name: "web-nuclei"
+                 description: "Scan for technologies used and exposed panels"
+                 command: "nuclei -no-color -silent -t ~/nuclei-templates/http/technologies,~/nuclei-templates/http/exposed-panels -output {{ .directory }}/{{ .project }}-nuclei.log"
+                 enabled: true
+                 stdin: true
